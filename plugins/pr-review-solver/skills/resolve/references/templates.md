@@ -28,6 +28,16 @@ Relaxed rules active (view with /pr-review-solver:config show):
 | 3 | lib/c.go:7 | local | — | Not viable | reply draft |
 ```
 
+Right after the table, list resolved threads. One line each, no card, no classification:
+
+```
+Already resolved: <count>
+- src/a.ts:12 · Prefer a named constant for the retry limit…
+- lib/c.go:30 · Typo in the error message…
+```
+
+If there are none, print `Already resolved: 0` and no list.
+
 ## Comment card
 
 ```

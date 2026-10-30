@@ -44,7 +44,8 @@ Which comments to process:
 
 - Unresolved threads whose comments include at least one not written by the user.
 - Review bodies and conversation comments that ask for a change or ask a question.
-- Skip resolved threads, approvals without text, and the user's own comments.
+- Skip approvals without text and the user's own comments. If `include_own_comments: true` is in effect, the user's own comments are processed too (intended for testing on a PR where the user wrote the comments).
+- Resolved threads are not processed. Count them, and keep `path:line` and the first ~80 characters of their first comment for the "Already resolved" list in the summary (`templates.md`). That way, on later runs the user sees what was closed earlier without a full card.
 - Comments from bots (linters, scanners) are processed like any other, and the card marks them as bot.
 - If there are more than 100 threads, paginate. Never silently drop comments.
 

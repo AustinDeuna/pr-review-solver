@@ -26,6 +26,7 @@ defaults:
   reply_tone: constructive
   require_push_approval: true
   require_reply_approval: true
+  include_own_comments: false    # true = also process comments written by the PR author (testing)
   hard_gates:
     security: true
     data_schema: true
@@ -71,6 +72,7 @@ A relaxation is any effective value that is looser than the plugin default:
 - A hard gate set to `false`.
 - `fast_categories` beyond `cosmetic`.
 - `require_push_approval: false` or `require_reply_approval: false`.
+- `include_own_comments: true`.
 
 At the start of **every** run with a relaxation active, print the notice (`templates.md`): each rule, its default value, the effect, and how to view it (`/pr-review-solver:config show`). Every card resolved thanks to a relaxation lists it under "Relaxed rules".
 

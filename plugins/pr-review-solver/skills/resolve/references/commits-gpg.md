@@ -11,7 +11,8 @@ Process Low and Medium items one at a time, in the order of the summary table. F
 4. **Commit message** follows the repo's convention, deduced from `git log -20 --format=%s` and `CONTRIBUTING` (for example Conventional Commits, ticket prefixes, imperative mood). If the repo has none, use `commit_style` from the config. If that is empty too, write an imperative summary under 72 characters. Never add trailers that the repo does not use.
 5. **Stage only this item's files:** `git add -- <files>`. Never `git add -A` or `git add .`.
 6. **Commit** according to the signing mode (`preflight.md` §4):
-   - **Normal mode:** `git commit -m "<subject>" [-m "<body>"]`. Git signs according to the user's own config. Do not pass `-S` or `--no-gpg-sign`.
+   - **Normal mode:** first repeat the cache check from `preflight.md` §4, because the cache TTL may have expired since the last commit. If the passphrase is no longer cached, switch to step mode for this item and all remaining ones. Otherwise run `git commit -m "<subject>" [-m "<body>"]`. Git signs according to the user's own config. Do not pass `-S` or `--no-gpg-sign`.
+     Why the check matters: when `GPG_TTY` points to the terminal Claude Code runs in, a passphrase prompt makes `pinentry-curses` take over that terminal. The UI fills with escape sequences, the user's keystrokes go to the wrong place, and the commit fails. Never start a signed commit that would need a prompt.
    - **Step mode:** see below.
 7. Record the SHA: `git rev-parse --short HEAD`.
 

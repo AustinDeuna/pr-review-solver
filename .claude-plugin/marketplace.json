@@ -1,0 +1,17 @@
+{
+  "name": "pr-review-solver",
+  "owner": {
+    "name": "DEUNA"
+  },
+  "metadata": {
+    "description": "Internal DEUNA marketplace for the pr-review-solver Claude Code plugin."
+  },
+  "plugins": [
+    {
+      "name": "pr-review-solver",
+      "source": "./plugins/pr-review-solver",
+      "description": "Evaluate, classify and resolve review comments on your pull request, with one signed commit per comment and approval before push.",
+      "category": "productivity"
+    }
+  ]
+}

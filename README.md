@@ -93,6 +93,17 @@ claude plugin install pr-review-solver@pr-review-solver --scope user
 
 **Tip:** create your PRs by asking Claude Code to do it from the session where you developed the branch. Later, `claude --from-pr <N>` reopens that session with full context.
 
+## Stacked PRs
+
+If your PR's base is another open PR of yours (and so on), the plugin detects the stack and asks whether to resolve all of it or only the current PR. For the whole stack, it:
+
+1. Classifies every comment in the stack up front, grouped by PR.
+2. Works bottom-up. It resolves each PR's comments, then merges that branch into the PR above (`git merge`, never a rebase or force push), so every PR gets the fixes.
+3. Re-checks comments whose lines changed because of a merge.
+4. Asks for one approval that covers every branch. You can push all of them or only some.
+
+If a merge conflicts, the plugin aborts that merge, stops propagating from that point, and tells you which files conflict. If the repo's guidance requires rebasing feature branches, it does not merge, and explains why.
+
 ## Configuration
 
 Optional. One global file, `~/.claude/pr-review-solver.md`, with general values and per-repo sections. It is never stored inside a repo. Use `/pr-review-solver:config show | edit <request> | init`. The schema is in [`configuration.md`](plugins/pr-review-solver/skills/resolve/references/configuration.md).
@@ -159,3 +170,5 @@ Options (your choice; the plugin never changes them, and the passphrase is never
 - The skill does not read tickets. Scope comes from the PR description and commits.
 - Calling the repo's review skill from this skill is done by reading its `SKILL.md` and applying it through the `review-gate` subagent. Direct skill-to-skill invocation is not documented.
 - Not yet verified: that `gh pr create` run from a Claude Code session links the session for `--from-pr`.
+- Stacks: only same-repository PRs authored by you. Merge conflicts are never resolved automatically. When a lower PR is squash-merged into `main`, the PRs above it may need a manual rebase, which is outside this plugin.
+- Not yet verified: how a signed merge behaves when signing fails mid-merge. The documented handling is retry, step mode, or `git merge --abort`.

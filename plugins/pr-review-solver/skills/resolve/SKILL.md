@@ -20,7 +20,7 @@ Read `references/guardrails.md` before step 1. These rules apply in every run an
 
 ## Workflow
 
-1. **Preflight.** Follow `references/preflight.md`. On any blocking failure, stop and tell the user exactly what to do.
+1. **Preflight.** Follow `references/preflight.md`. On any blocking failure, stop and tell the user exactly what to do. Then detect whether the PR is part of a stack (`references/stack.md`). If the user chooses to resolve the whole stack, `references/stack.md` drives steps 3-8 for every PR in it.
 2. **Configuration.** Load the user config as described in `references/configuration.md`. Print the relaxed-rules notice if any rule is relaxed.
 3. **Context.** Gather context and conventions with `references/context.md`, and select the repo's review skill (state which one, do not ask).
 4. **Evaluate and classify every comment** before touching code: `references/evaluation.md` for the verdict, `references/rubric.md` for the level. Show the summary table and one card per comment (`references/templates.md`). Ask the user to confirm Obsolete items.

@@ -2,15 +2,15 @@
 
 ## Before asking for approval
 
-1. **Signatures** (only if signing is configured). Every commit to be pushed must be signed:
+1. **Signatures** (only if signing is configured). Every commit that is new to the remote must be signed, merge commits included:
 
    ```bash
-   for c in $(git rev-list origin/<headRefName>..HEAD); do
+   for c in $(git rev-list <headRefName> --not --remotes); do
      git cat-file commit "$c" | grep -q '^gpgsig' || echo "UNSIGNED $c"
    done
    ```
 
-   If any commit is unsigned, do not push. Tell the user which ones.
+   Commits that already exist on any remote branch (for example, a parent's commits brought in by a stack merge) are not re-checked. If any new commit is unsigned, do not push that branch. Tell the user which commits.
 2. **Remote unchanged:** run `git fetch origin <headRefName>` again. If the remote moved, stop. The user integrates those changes themselves. You never rebase or force push.
 3. **Show the approval request** (`templates.md`): the target branch, every commit to be pushed (including unpushed commits that existed before this run), the comment each one resolves, the verification results, the review gate findings, and the pending High items.
 

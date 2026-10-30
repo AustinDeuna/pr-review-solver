@@ -97,6 +97,39 @@ Pending High items: <list>
 Push? (yes / no)
 ```
 
+## Stack overview
+
+```
+Stack (bottom → top):
+  #101 feat/a  → main     · 3 unresolved · 1 resolved
+  #102 feat/b  → feat/a   · 2 unresolved · 0 resolved   ← current
+  #103 feat/c  → feat/b   · 0 unresolved · 2 resolved
+```
+
+For a stacked run, the summary table is repeated once per PR, under a `PR #<N> · <head>` heading, each with its own "Already resolved" list.
+
+## Merge announcement
+
+```
+Merge #<parent> (<parent head>) into #<child> (<child head>)
+Brings: <k> commits (<short SHAs>)
+Command: git merge --no-edit <parent head>
+```
+
+## Stack approval
+
+```
+Ready to push (bottom → top):
+  #101 feat/a:  <sha> <subject> → comment #<n>; ...
+  #102 feat/b:  <sha> Merge branch 'feat/a' into feat/b; <sha> <subject> → comment #<n>
+  #103 feat/c:  <sha> Merge branch 'feat/b' into feat/c
+Signatures: all new commits signed | not configured
+Not pushable: <branch: reason (conflict, parent not pushed)> | none
+Review gate: <per PR result>
+Pending High items: <per PR>
+Push all, some (list), or none?
+```
+
 ## Replies
 
 Resolved:

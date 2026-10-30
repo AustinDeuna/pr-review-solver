@@ -11,18 +11,28 @@ Process Low and Medium items one at a time, in the order of the summary table. F
 4. **Commit message** follows the repo's convention, deduced from `git log -20 --format=%s` and `CONTRIBUTING` (for example Conventional Commits, ticket prefixes, imperative mood). If the repo has none, use `commit_style` from the config. If that is empty too, write an imperative summary under 72 characters. Never add trailers that the repo does not use.
 5. **Stage only this item's files:** `git add -- <files>`. Never `git add -A` or `git add .`.
 6. **Commit** according to the signing mode (`preflight.md` §4):
-   - **Normal mode:** first repeat the cache check from `preflight.md` §4, because the cache TTL may have expired since the last commit. If the passphrase is no longer cached, switch to step mode for this item and all remaining ones. Otherwise run `git commit -m "<subject>" [-m "<body>"]`. Git signs according to the user's own config. Do not pass `-S` or `--no-gpg-sign`.
-     Why the check matters: when `GPG_TTY` points to the terminal Claude Code runs in, a passphrase prompt makes `pinentry-curses` take over that terminal. The UI fills with escape sequences, the user's keystrokes go to the wrong place, and the commit fails. Never start a signed commit that would need a prompt.
+   - **Normal mode:**
+     1. Repeat the cache check from `preflight.md` §4, because the cache TTL may have expired since the last commit.
+     2. If the passphrase is not cached and the pinentry is a terminal one, switch to step mode for this item and all remaining ones.
+     3. If the passphrase is not cached and the pinentry is graphical, tell the user first: "A passphrase dialog will open for this commit; it closes by itself after about a minute." (Observed with `pinentry-mac` 1.3.1.1: the dialog closed after 60 s and gpg reported the operation as cancelled.)
+     4. Run `git commit -m "<subject>" [-m "<body>"]` with a 5-minute tool timeout (300000 ms), so the user has time to answer the dialog. Git signs according to the user's own config. Do not pass `-S` or `--no-gpg-sign`.
+
+     Why the check matters: when `GPG_TTY` points to the terminal Claude Code runs in, a terminal pinentry takes over that terminal. The UI fills with escape sequences, the user's keystrokes go to the wrong place, and the commit fails. Never start a signed commit that would need a terminal prompt.
    - **Step mode:** see below.
 7. Record the SHA: `git rev-parse --short HEAD`.
 
 ## Signing failure in normal mode
 
-If the commit fails with a signing error (for example "gpg failed to sign the data", "No pinentry", "Inappropriate ioctl for device", "signing failed"):
+This covers a commit that fails with a signing error (for example "gpg failed to sign the data", "No pinentry", "Operation cancelled", "Timeout", "Inappropriate ioctl for device", "signing failed"), or that the tool timeout cuts off. Typical causes: the dialog was closed or cancelled, the pinentry timed out, or nobody answered in time. gpg messages are localized (for example "Operación cancelada"), so rely on git's own `error: gpg failed to sign the data` / `fatal: failed to write commit object` and the non-zero exit code, not on gpg's wording.
 
-- Do not retry the commit.
-- Do not disable signing, change config, or use `--no-gpg-sign`.
-- Switch to step mode for this item and every remaining one.
+1. Do not retry automatically. Do not disable signing, change config, or use `--no-gpg-sign`.
+2. Check the state:
+   - `git log -1 --format='%h %s'` must show that no new commit was created.
+   - `git diff --cached --stat` must show this item's files still staged.
+
+   If a commit was created anyway, check its signature (`git cat-file commit HEAD | grep -q '^gpgsig'`) and report the result.
+3. **Graphical pinentry:** ask the user: "Signing did not complete (<reason from the error>). Your changes are still staged; nothing was lost. Retry (the passphrase dialog opens again) or switch to step mode?" Retry only after an explicit yes, and ask again after each failure.
+4. **Terminal pinentry, or the user chooses step mode:** switch to step mode for this item and every remaining one.
 
 ## Step mode
 

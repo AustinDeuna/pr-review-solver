@@ -74,12 +74,29 @@ Report only `set`/`unset` for the signing key, never its value.
   done
   ```
 
-  A line `S KEYINFO <grip> <type> <serial> <idstr> <cached> <protection> ...` with `<cached>` = `1`, or `<protection>` other than `P`, means signing will work: **normal mode**. Otherwise, or if the check fails: **step mode** for the whole run (`commits-gpg.md`). Do not attempt a signed commit in step mode, because pinentry may try to draw on the user's terminal.
+  In a line `S KEYINFO <grip> <type> <serial> <idstr> <cached> <protection> ...`, the passphrase is available when `<cached>` = `1` or `<protection>` is not `P`.
+
+  Then find out which pinentry the agent uses:
+
+  ```bash
+  grep -E '^[[:space:]]*pinentry-program' ~/.gnupg/gpg-agent.conf 2>/dev/null
+  ```
+
+  It is **graphical** if the program's basename is `pinentry-mac`, `pinentry-gnome3`, `pinentry-qt`, `pinentry-gtk`/`pinentry-gtk-2`, or `pinentry-w32`. It is a **terminal** pinentry if the line is missing, or the program is `pinentry`, `pinentry-curses`, or `pinentry-tty`.
+
+  | Passphrase | Pinentry | Mode |
+  |---|---|---|
+  | Available | any | normal |
+  | Not available | graphical | normal (a dialog opens on each commit that needs the passphrase) |
+  | Not available | terminal | step |
+  | Check failed | any | step |
+
+  Step mode lasts for the whole run (`commits-gpg.md`). With a terminal pinentry, never attempt a signed commit: pinentry would take over Claude Code's terminal.
 - Format `ssh` or `x509`: normal mode. If the first commit fails with a signing error, switch to step mode.
 
 When step mode is selected, tell the user once:
 
-> Your GPG passphrase isn't cached and my shell has no terminal for pinentry, so I'll stage each fix and give you the exact commit command to run. Optional (your call): sign anything once in your own terminal so gpg-agent caches the passphrase for its cache TTL, or configure a graphical pinentry. I will not change any git or gpg setting.
+> Your GPG passphrase isn't cached and your pinentry needs a terminal, which my shell doesn't have, so I'll stage each fix and give you the exact commit command to run. Optional (your call): sign anything once in a separate terminal so gpg-agent caches the passphrase for its cache TTL, or switch to a graphical pinentry (on macOS: `brew install pinentry-mac`, add `pinentry-program /opt/homebrew/bin/pinentry-mac` to `~/.gnupg/gpg-agent.conf`, run `gpgconf --kill gpg-agent`). I will not change any git or gpg setting.
 
 ## 5. Configuration
 

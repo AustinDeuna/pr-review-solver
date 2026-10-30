@@ -79,16 +79,17 @@ Keep `git push` and `gh pr comment` / `gh api` (write) out of the allow list. Th
 
 ## Commit signing
 
-Claude Code's shell has no terminal, so `pinentry-curses`/`pinentry-tty` cannot ask for your GPG passphrase. The skill detects whether gpg-agent has the passphrase cached, without signing anything:
+Claude Code's shell has no terminal, so `pinentry-curses`/`pinentry-tty` cannot ask for your GPG passphrase. Before each commit, the skill checks whether gpg-agent has the passphrase cached (without signing anything), and which pinentry the agent uses:
 
 - **Cached:** commits are made and signed normally.
-- **Not cached:** step mode. The skill stages each fix and gives you the `git commit -S` command to run in your terminal.
+- **Not cached, graphical pinentry** (for example `pinentry-mac`): commits are made normally, and a dialog asks for your passphrase. With `pinentry-mac`, the dialog closes by itself after about 60 seconds. If you close or cancel the dialog, or it times out, nothing is lost: the fix stays staged, and the skill asks whether to retry or switch to step mode.
+- **Not cached, terminal pinentry:** step mode. The skill stages each fix and gives you the `git commit -S` command to run in your terminal.
 
 Do not try to sign from Claude Code while the passphrase is not cached. If `GPG_TTY` points to Claude Code's terminal, `pinentry-curses` takes over that terminal: the UI fills with escape sequences, typed keys land in the wrong place, and the commit fails. The skill re-checks the cache before every commit to avoid this.
 
 Options (your choice; the plugin never changes them, and the passphrase is never stored by the plugin):
 
-- **Graphical pinentry (recommended on macOS).** `brew install pinentry-mac`, add `pinentry-program /opt/homebrew/bin/pinentry-mac` to `~/.gnupg/gpg-agent.conf`, then run `gpgconf --kill gpg-agent`. Signing then opens a native dialog, so it works from Claude Code. Leave "Save in Keychain" unchecked if you do not want the passphrase stored by macOS.
+- **Graphical pinentry (recommended on macOS).** `brew install pinentry-mac`, add `pinentry-program /opt/homebrew/bin/pinentry-mac` to `~/.gnupg/gpg-agent.conf`, then run `gpgconf --kill gpg-agent`. Signing then opens a native dialog, so it works from Claude Code. Uncheck "Save in Keychain" if you do not want the passphrase stored: once it is saved, `pinentry-mac` reads it from the Keychain without asking whenever your macOS session is unlocked. To remove a saved passphrase: `security delete-generic-password -s GnuPG -a <keygrip>`.
 - **Warm the cache** in a separate terminal (not Claude Code's): `echo test | gpg --clearsign > /dev/null`. It lasts for your agent's `default-cache-ttl` (idle) and `max-cache-ttl` (absolute).
 - **Step mode:** do nothing. The skill stages each fix and you run `git commit -S` yourself.
 

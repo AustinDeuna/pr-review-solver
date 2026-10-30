@@ -95,7 +95,13 @@ claude plugin install pr-review-solver@pr-review-solver --scope user
 
 ## Stacked PRs
 
-If your PR's base is another open PR of yours (and so on), the plugin detects the stack and asks whether to resolve all of it or only the current PR. For the whole stack, it:
+Whenever you run it on a PR, the plugin checks whether that PR is part of a stack. It looks for open PRs whose base is this PR's branch (children) and for the PR whose branch is this PR's base (parent), recursively. If the session that built the PRs is open (`claude --from-pr`), it also uses what the session remembers, verified with `gh`. When it finds a stack, it asks you to choose one of these:
+
+1. Resolve every PR in the stack and merge the fixes upward.
+2. Resolve only this PR and merge its fixes upward.
+3. Resolve only this PR, without propagating.
+
+PRs in the stack that belong to someone else are shown but never modified. When it resolves the whole stack, it:
 
 1. Classifies every comment in the stack up front, grouped by PR.
 2. Works bottom-up. It resolves each PR's comments, then merges that branch into the PR above (`git merge`, never a rebase or force push), so every PR gets the fixes.
@@ -170,5 +176,5 @@ Options (your choice; the plugin never changes them, and the passphrase is never
 - The skill does not read tickets. Scope comes from the PR description and commits.
 - Calling the repo's review skill from this skill is done by reading its `SKILL.md` and applying it through the `review-gate` subagent. Direct skill-to-skill invocation is not documented.
 - Not yet verified: that `gh pr create` run from a Claude Code session links the session for `--from-pr`.
-- Stacks: only same-repository PRs authored by you. Merge conflicts are never resolved automatically. When a lower PR is squash-merged into `main`, the PRs above it may need a manual rebase, which is outside this plugin.
+- Stacks: only same-repository PRs; PRs authored by others are never modified. Merge conflicts are never resolved automatically. When a lower PR is squash-merged into `main`, the PRs above it may need a manual rebase, which is outside this plugin.
 - Not yet verified: how a signed merge behaves when signing fails mid-merge. The documented handling is retry, step mode, or `git merge --abort`.

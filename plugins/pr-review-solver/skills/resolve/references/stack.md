@@ -2,26 +2,34 @@
 
 A stack is a chain of open PRs where each PR's base branch is the head branch of another open PR. This file wraps workflow steps 3-8 so that a whole stack is resolved bottom-up, and each PR's fixes are merged into the PRs above it.
 
-## 1. Detection (right after preflight §2)
+## 1. Detection (right after preflight §2, always, starting from the PR given or the current branch's PR)
+
+GitHub has no built-in "stack" object. The signal is the relationship between branches: PR X is the **parent** of PR Y when `Y.baseRefName == X.headRefName`. Walk both directions from the starting PR, with any author:
 
 ```bash
-gh pr list --author @me --state open --limit 100 \
-  --json number,title,url,headRefName,baseRefName,isCrossRepository
+F=number,title,url,state,author,headRefName,baseRefName,isCrossRepository
+# Children: open PRs whose base is this PR's head branch
+gh pr list --state open --base <headRefName> --json $F
+# Parent: an open PR whose head is this PR's base branch (skip when the base is the default branch)
+gh pr list --state open --head <baseRefName> --json $F
 ```
 
-1. PR X is the **parent** of PR Y when `Y.baseRefName == X.headRefName`.
-2. From the current PR, walk down through parents to the root, a PR whose base is not the head of another open PR.
-3. Collect every descendant of that root. The stack is the root plus all its descendants.
-4. If the stack has a single PR, there is no stack: continue with the normal single-PR flow.
-5. If any PR in the stack is cross-repository, stack mode is not available. Say so and continue with the single-PR flow.
+1. Repeat for every PR you find, until no new PRs appear. Down to the root: a PR whose base is not the head of another open PR (usually the default branch). Up through every descendant.
+2. **Session memory (Mode A only).** If the current conversation shows that this session created or worked on other PRs or branches in a chain (for example, it opened PR #101 on `feat/a`, then PR #102 on `feat/b` based on `feat/a`), add them as candidates. Verify each one with `gh pr view <n> --json $F`. Only links that `gh` confirms are part of the stack. A candidate that is merged, closed, or no longer linked is reported and left out. Never read session transcripts on disk.
+3. If the stack has a single PR, there is no stack: continue with the normal single-PR flow.
+4. If any PR in the stack is cross-repository, stack mode is not available. Say so and continue with the single-PR flow.
+5. A PR in the stack whose author is not the user is shown, but it never receives commits, merges, or pushes. Propagation stops below it.
 
 Order: parents before children (topological order). Siblings are ordered by PR number.
 
-If the stack has more than one PR, show it (`templates.md`, "Stack overview") with the unresolved comment count for each PR. Then ask once:
+Show the stack (`templates.md`, "Stack overview") with the unresolved and resolved comment counts for each PR. Then ask once:
 
-> PR #<N> is part of a stack of <k> PRs. Resolve the whole stack bottom-up (fixes are merged upward), or only PR #<N>?
+> PR #<N> is part of a stack of <k> PRs. How should I proceed?
+> 1. Resolve every PR in the stack bottom-up, and merge the fixes upward.
+> 2. Resolve only #<N>, then merge its fixes into the PRs above it.
+> 3. Resolve only #<N>, without propagating.
 
-If the user chooses **only this PR**, run the single-PR flow, and warn that the PRs above it will not receive the fixes until they are merged up.
+Recommend option 1 when other PRs in the stack have unresolved comments, and option 2 otherwise. With option 3, warn that the PRs above will not receive the fixes until they are merged up.
 
 ## 2. Preconditions (checked before changing anything)
 
@@ -35,8 +43,13 @@ If the user chooses **only this PR**, run the single-PR flow, and warn that the 
 
 ## 3. Flow
 
-1. **Context and classification for the whole stack.** Gather context (`context.md`) and evaluate and classify the comments of every PR in the stack. Show one summary table grouped by PR, with each PR's "Already resolved" list (`templates.md`).
-2. **For each PR, in order:**
+The PRs in scope depend on the user's choice:
+
+- **Option 1:** every PR in the stack resolves its comments and receives merges.
+- **Option 2:** only #<N> resolves comments. The PRs above it only receive merges, which skips sub-steps 3 to 5 below for them.
+
+1. **Context and classification** for the PRs that resolve comments. Gather context (`context.md`), and evaluate and classify their comments. Show one summary table grouped by PR, with each PR's "Already resolved" list (`templates.md`).
+2. **For each PR, in order** (from the root for option 1, from #<N> for option 2):
    1. Switch to its branch: `git switch <head>`.
    2. If its parent in the stack has commits this branch does not contain (`git rev-list --count <head>..<parent>` > 0), merge the parent into it (§4).
    3. After a merge, re-evaluate this PR's comments that point to lines the merge changed (`git diff <pre-merge-sha>..HEAD -- <path>` overlaps the comment's lines). Note "re-evaluated after merge" in their cards.

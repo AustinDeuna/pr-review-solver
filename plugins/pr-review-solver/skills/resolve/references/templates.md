@@ -104,6 +104,8 @@ Stack (bottom → top):
   #101 feat/a  → main     · 3 unresolved · 1 resolved
   #102 feat/b  → feat/a   · 2 unresolved · 0 resolved   ← current
   #103 feat/c  → feat/b   · 0 unresolved · 2 resolved
+  #104 feat/d  → feat/c   · 1 unresolved · 0 resolved   (author: other-user, not modified)
+Detected via: gh base/head links | session context (verified with gh)
 ```
 
 For a stacked run, the summary table is repeated once per PR, under a `PR #<N> · <head>` heading, each with its own "Already resolved" list.

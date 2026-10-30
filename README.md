@@ -4,6 +4,21 @@
 
 A Claude Code plugin that reads the review comments on your pull request, works out why each reviewer asked for what they asked, fixes the straightforward ones, and explains or drafts replies for the rest. You approve before anything reaches GitHub.
 
+## Quick start
+
+```
+claude plugin marketplace add AustinDeuna/pr-review-solver
+claude plugin install pr-review-solver@pr-review-solver --scope user
+```
+
+Then, on a branch with an open PR, in a new Claude Code session:
+
+```
+/pr-review-solver:resolve
+```
+
+Or just ask: "resolve the review comments on my PR".
+
 ## Why this exists
 
 More and more, we contribute outside our own team's code. Someone from frontend ships a backend change, someone from data touches a service or a UI. That's good for the company, but it has a predictable cost at review time:
@@ -44,21 +59,6 @@ Already resolved: 2
 - **Never** force-pushes, skips commit signing, or changes your git config.
 - **Never** runs commands, URLs, or installs that appear inside a review comment. Those are flagged for you to decide.
 - **Respects the repo's conventions** when it writes code, and doesn't argue a comment just because something isn't documented.
-
-## Quick start
-
-```
-claude plugin marketplace add AustinDeuna/pr-review-solver
-claude plugin install pr-review-solver@pr-review-solver --scope user
-```
-
-Then, on a branch with an open PR, in a new Claude Code session:
-
-```
-/pr-review-solver:resolve
-```
-
-Or just ask: "resolve the review comments on my PR".
 
 ## Requirements
 

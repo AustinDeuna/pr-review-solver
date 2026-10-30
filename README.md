@@ -10,12 +10,14 @@ Claude Code plugin that helps you resolve the review comments left on your pull 
 
 ## Install
 
-From the marketplace (once it is published in the organization):
+From GitHub (this repository is the marketplace):
 
 ```
-/plugin marketplace add <org>/<marketplace-repo>
+/plugin marketplace add AustinDeuna/pr-review-solver
 /plugin install pr-review-solver@pr-review-solver
 ```
+
+The repository will move to the DEUNA organization after testing; the marketplace source will change accordingly.
 
 From a local clone (development and testing):
 
@@ -47,7 +49,19 @@ Flow:
 
 ## Configuration
 
-Optional. One global file, `~/.claude/pr-review-solver.md`, with general values and per-repo sections. It is never stored inside a repo. Use `/pr-review-solver:config show | edit <request> | init`. The schema is in `skills/resolve/references/configuration.md`.
+Optional. One global file, `~/.claude/pr-review-solver.md`, with general values and per-repo sections. It is never stored inside a repo. Use `/pr-review-solver:config show | edit <request> | init`. The schema is in [`configuration.md`](plugins/pr-review-solver/skills/resolve/references/configuration.md).
+
+## Repository layout
+
+```
+.claude-plugin/marketplace.json            # marketplace manifest
+plugins/pr-review-solver/
+├── .claude-plugin/plugin.json             # plugin manifest
+├── skills/resolve/SKILL.md                # /pr-review-solver:resolve
+├── skills/resolve/references/             # preflight, rubric, guardrails, templates, ...
+├── skills/config/SKILL.md                 # /pr-review-solver:config
+└── agents/review-gate.md                  # read-only validation gate
+```
 
 You can loosen rules. Every relaxation is saved only with your explicit acceptance, and it is announced at the start of every run.
 

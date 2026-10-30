@@ -4,8 +4,6 @@
 
 A Claude Code plugin that reads the review comments on your pull request, works out why each reviewer asked for what they asked, fixes the straightforward ones, and explains or drafts replies for the rest. You approve before anything reaches GitHub.
 
-## Quick start
-
 ```
 claude plugin marketplace add AustinDeuna/pr-review-solver
 claude plugin install pr-review-solver@pr-review-solver --scope user

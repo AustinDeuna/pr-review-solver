@@ -36,4 +36,6 @@ Read `references/guardrails.md` before step 1. These rules apply in every run an
 
 ## Style
 
-Be concise and factual with the user. No flattery. Every claim about code cites `file:line`, a commit SHA, or a quoted line from the repo's guidance.
+- **Language.** Everything shown to the user is in the language the user writes in this session: tables, cards, labels, questions, notices. The templates in `references/templates.md` define the structure. Translate their labels; never leave them in English when the user writes in another language. PR replies follow the language of each PR thread. Commit messages follow the repo's convention.
+- **Plain words.** Write for someone who has never used this tool. Prefer "I'll fix it and run the tests" over "Medium · commit". Every level and verdict appears with its meaning (see the legend in `references/templates.md`).
+- Be concise and factual. No flattery. Every claim about code cites `file:line`, a commit SHA, or a quoted line from the repo's guidance.

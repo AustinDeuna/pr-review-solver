@@ -66,23 +66,24 @@ Report only `set`/`unset` for the signing key, never its value.
 - `commit.gpgsign` not `true`: signing is not configured. Say so once. Do not enable it. Commits will be unsigned, as they already are for this user.
 - Format `openpgp` (or unset): check whether the agent can sign without a prompt. This is read-only and does not sign anything:
 
+  Run this exact command, and use the `MODE=` line it prints. Do not re-derive the mode by hand:
+
   ```bash
-  K="$(git config --get user.signingkey)"
+  K="$(git config --get user.signingkey)"; avail=no
   for g in $(gpg --batch --with-colons --with-keygrip --list-secret-keys "$K" 2>/dev/null \
       | awk -F: '$1=="sec"||$1=="ssb"{cap=$12} $1=="grp" && cap ~ /s/ {print $10}'); do
-    gpg-connect-agent "KEYINFO $g" /bye
+    gpg-connect-agent "KEYINFO $g" /bye | awk '$2=="KEYINFO" && ($7=="1" || $8!="P"){f=1} END{exit !f}' && avail=yes
   done
+  p="$(awk '$1=="pinentry-program"{print $2}' ~/.gnupg/gpg-agent.conf 2>/dev/null | tail -1)"
+  case "$(basename "${p:-pinentry}")" in
+    pinentry-mac|pinentry-gnome3|pinentry-qt|pinentry-qt5|pinentry-gtk|pinentry-gtk-2|pinentry-w32) kind=graphical ;;
+    *) kind=terminal ;;
+  esac
+  if [ "$avail" = yes ] || [ "$kind" = graphical ]; then m=normal; else m=step; fi
+  echo "PASSPHRASE_AVAILABLE=$avail PINENTRY=$kind MODE=$m"
   ```
 
-  In a line `S KEYINFO <grip> <type> <serial> <idstr> <cached> <protection> ...`, the passphrase is available when `<cached>` = `1` or `<protection>` is not `P`.
-
-  Then find out which pinentry the agent uses:
-
-  ```bash
-  grep -E '^[[:space:]]*pinentry-program' ~/.gnupg/gpg-agent.conf 2>/dev/null
-  ```
-
-  It is **graphical** if the program's basename is `pinentry-mac`, `pinentry-gnome3`, `pinentry-qt`, `pinentry-gtk`/`pinentry-gtk-2`, or `pinentry-w32`. It is a **terminal** pinentry if the line is missing, or the program is `pinentry`, `pinentry-curses`, or `pinentry-tty`.
+  How the mode is decided:
 
   | Passphrase | Pinentry | Mode |
   |---|---|---|

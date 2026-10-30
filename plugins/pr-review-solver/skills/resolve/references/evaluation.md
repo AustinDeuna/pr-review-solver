@@ -39,6 +39,8 @@ The absence of documentation in someone else's repo is never a reason to refute 
 | Unclear | You cannot determine the reason or the exact request. | Draft a question to the reviewer. Do not guess. |
 | Obsolete | The line changed after the comment, and the concern no longer applies or cannot be located. | Mark it and ask the user to confirm before replying. |
 
+If the exact change for a comment depends on how another comment is decided, keep its own verdict and level, and mark it "Waiting on #<n>". Do not raise it to High only because of the dependency. Resolve it after the user decides #<n>.
+
 Two comments that contradict each other, or a comment that contradicts the PR description, get a hard gate (`rubric.md`). Draft a reply that lays out the conflict and asks which way to go.
 
 ## Reply tone

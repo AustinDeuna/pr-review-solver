@@ -1,14 +1,32 @@
 # Templates
 
-Fill in the placeholders. Keep the structure; trim empty fields.
+Fill in the placeholders. Keep the structure; trim empty fields. These templates define structure only: render every label in the user's session language, and write for someone who has never used this tool (`SKILL.md`, "Style").
 
 ## Run header
 
 ```
 PR #<N> · <title> · <url>
-Branch <head> → <base> · Mode <A|B> · Signing <normal|step|not configured>
-Review skill: <name> (<path>) | none, using internal rubric
-Verification: test=<cmd> (<source>) · lint=<cmd> (<source>) · typecheck=<cmd|none>
+Branch <head> → <base>
+Session context: <yes, this session built the branch | no, working from the PR and diff only>
+Commits: <I commit and sign them | you run each commit command (your signing needs a terminal) | unsigned (signing not configured)>
+Review check before push: <skill name (path) | built-in checklist>
+How I verify: compile=<cmd> · tests=<cmd> · lint=<cmd|none found> (sources: <files>)
+```
+
+## Legend (print once per run, right before the first summary table)
+
+```
+Risk
+  Low     I fix it, then check with formatter/linter (and compile if a name changes).
+  Medium  I fix it, then run the affected tests. Behavior changes are explained.
+  High    I don't change code. You get 2-3 options with their risks to choose from.
+Verdict
+  Doable                 The request makes sense and breaks nothing.
+  Doable, with a tweak   The reviewer's point is right; I'd do it slightly differently (explained).
+  Not advisable          It would break something or goes against a rule/decision; I draft a reply with evidence.
+  Unclear                I draft a question for the reviewer instead of guessing.
+  Outdated               The code changed after the comment; you confirm before I reply.
+  Waiting on #<n>        Depends on what you decide for comment #<n>.
 ```
 
 ## Relaxed-rules notice
@@ -21,12 +39,15 @@ Relaxed rules active (view with /pr-review-solver:config show):
 ## Summary table
 
 ```
-| # | File:line | Type | Level | Verdict | Action |
-|---|-----------|------|-------|---------|--------|
-| 1 | src/a.ts:42 | cosmetic | Low | Viable | commit |
-| 2 | api/b.py:10 | contract | High | Viable | options |
-| 3 | lib/c.go:7 | local | — | Not viable | reply draft |
+| # | Where | What it asks | Risk | Verdict | Next step |
+|---|-------|--------------|------|---------|-----------|
+| 1 | src/a.ts:42 | Rename `tmp` to `retryCount` | Low | Doable | I fix it |
+| 2 | api/b.py:10 | Change the event payload field | High | Doable | You choose an option |
+| 3 | lib/c.go:7 | Inline the helper | — | Not advisable | Reply draft |
+| 4 | lib/c.go:20 | Update the comment wording | Low | Waiting on #2 | After you decide #2 |
 ```
+
+Use "Waiting on #<n>" instead of raising a simple item to High just because its exact change depends on another comment's decision. Classify the item on its own merits.
 
 Right after the table, list resolved threads. One line each, no card, no classification:
 
@@ -40,19 +61,39 @@ If there are none, print `Already resolved: 0` and no list.
 
 ## Comment card
 
+Lead with what a reader needs to decide. Technical classification goes last, in one line.
+
 ```
-#<n> · <file>:<line> · <Level> · <Verdict>   <author>[ (bot)] · <link>
-Asks:          <one line>
-Reviewer's reason: <one line>
-Type:          <type>          Scope: <files>; outside refs: <none|list>
-Runtime change: <yes|no>       Coverage: <yes|partial|no|unknown>
-Confidence:    <high|medium|low>   Reversible: <yes|no>
-Tests to run:  <commands|none>
-Risk:          <one line>
-Evidence:      <file:line | SHA | quoted rule>
-Action:        <commit | options | reply draft | question | confirm obsolete>
-Adjustment:    <only for Viable with adjustment: what differs and why>
-Relaxed rules: <only if this item was resolved because of a relaxation>
+#<n> · <short title of the request>
+<author>[ (bot)] · <file>:<line> · <link>
+
+What they ask:     <one plain sentence>
+Why they ask:      <the reviewer's underlying concern, one sentence>
+What I propose:    <the concrete action: "I'll change X and run Y" | "Don't change code; reply explaining Z" | "Ask the reviewer W" | "Options below">
+Why:               <2-4 bullets with evidence: file:line, commit SHA, quoted rule>
+What could break:  <plain-language risk, or "nothing expected">
+Your decision:     <only when something needs the user's choice>
+
+Risk <Low|Medium|High> (<reason in a few words, e.g. "touches the database schema">) · <Verdict> · Tests: <yes|partial|none> · Confidence: <high|medium|low>
+<Tweak: what differs from the literal request and why — only for "Doable, with a tweak">
+<Relaxed rules: … — only if this item was resolved because of a relaxation>
+```
+
+Example:
+
+```
+#3 · Rename the legacy_mode column to run_mode
+reviewer-a · ConfigLoader.scala:120 · <link>
+
+What they ask:     Rename the database column legacy_mode to run_mode.
+Why they ask:      Keep the column name consistent with the new name in code.
+What I propose:    Don't do it in this PR; reply proposing a follow-up with the migration. Options below.
+Why:               - Needs a migration in the schema repo; existing migration files can't be edited.
+                   - Earlier in this PR we decided to keep the column name (abc1234).
+What could break:  If code reading run_mode deploys before the migration, the query fails.
+Your decision:     Rename now (with the migration), or keep it and reply.
+
+Risk High (database schema change) · Doable · Tests: none for these queries · Confidence: high
 ```
 
 ## Commit announcement

@@ -173,6 +173,39 @@ Pending High items: <per PR>
 Push all, some (list), or none?
 ```
 
+## Run summary
+
+Printed at the end of every run, and whenever a run stops early. One block per PR touched (a single block outside a stack). Only facts from this run, in the user's session language.
+
+```
+Summary · <date> · <finished | stopped: reason>
+
+PR #<N> · <head>
+  Fixed:      #1 Rename tmp → retryCount ........ <sha> (compile ✓)
+              #2 Retry on 5xx ................... <sha> (tests ✓, behavior: retries 3x)
+  Merged in:  #<parent> → <sha> | none
+  Replies:    posted #1 #2 · drafted, not posted #4 | none
+  Pushed:     yes, <remote>/<head> | no (<reason>)
+  Pending:    #3 needs your decision (options above) · #5 waiting on #3 · #6 question to reviewer not sent
+Already resolved before this run: <count>
+
+Next step: <one line, e.g. "Decide #3, then run /pr-review-solver:resolve again">
+```
+
+If nothing changed in this run, say so in one line, and still list what is pending.
+
+## PR summary comment (optional)
+
+After the pushes and replies, offer to post one top-level comment on each PR touched, so reviewers see the outcome in one place. Draft it in the PR thread's language and show it first. Post it only after explicit approval (`gh pr comment <N> --body-file <file>`). Never include internal reasoning, local paths, or anything not already visible in the PR.
+
+```
+Review comments addressed:
+- <comment link> → <sha> <one line>
+- <comment link> → replied (<one line>)
+Still open:
+- <comment link> → <waiting on decision | question asked>
+```
+
 ## Replies
 
 Resolved:

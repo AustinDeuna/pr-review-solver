@@ -1,6 +1,6 @@
 {
   "name": "pr-review-solver",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Evaluate, classify and resolve review comments on your pull request, with one signed commit per comment and approval before push.",
   "author": {
     "name": "DEUNA"

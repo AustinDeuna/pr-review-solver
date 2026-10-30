@@ -57,6 +57,10 @@ gh pr comment <N> --body-file <file>
 
 Write each body to a temporary file under the session scratchpad and pass the file, never inline shell-escaped text.
 
+## PR summary comment
+
+After replies, offer the optional PR summary comment (`templates.md`, "PR summary comment"). It needs explicit approval, regardless of `require_reply_approval`.
+
 ## Threads
 
 Never resolve threads. Resolving is the reviewer's decision. The only exception is a thread the user opened, and only if they ask.

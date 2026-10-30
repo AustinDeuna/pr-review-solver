@@ -89,7 +89,8 @@ claude plugin install pr-review-solver@pr-review-solver --scope user
 3. Fix Low and Medium items, one verified commit per comment.
 4. Present options for High items, and draft replies for comments that are not viable, unclear, or obsolete.
 5. Validate with the repo's review skill, if it has one.
-6. After your approval: push (never force), then post the replies you approve.
+6. After your approval: push (never force), then post the replies you approve, plus an optional summary comment on the PR.
+7. Ends with a summary of the run: what was fixed (with commit SHAs), merged, pushed, replied, and what is still pending.
 
 **Tip:** create your PRs by asking Claude Code to do it from the session where you developed the branch. Later, `claude --from-pr <N>` reopens that session with full context.
 

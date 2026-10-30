@@ -28,7 +28,7 @@ Read `references/guardrails.md` before step 1. These rules apply in every run an
 6. **High items and disputed comments.** Present 2-3 options per High item and draft replies for Not viable, Unclear, and Obsolete items (`references/templates.md`). Do not change code for them.
 7. **Validation gate.** Run the selected review skill over the diff of the commits this run created (`references/context.md`, section "Review gate"). If there is none, apply `references/rubric.md` as the checklist and say so.
 8. **Approval, push, replies.** Follow `references/push-replies.md`. Push is the single approval point for commits. Replies are posted only after approval and only once the commits they cite are on the remote branch.
-9. **Wrap-up.** Print the final status table. If something in this session justifies a config change, offer it once as described in `references/configuration.md` ("Suggesting changes").
+9. **Wrap-up.** Print the run summary (`references/templates.md`, "Run summary"). Print it also whenever the run stops early: a conflict, a denied push, a blocking error, or decisions left pending. If something in this session justifies a config change, offer it once as described in `references/configuration.md` ("Suggesting changes").
 
 ## Arguments
 

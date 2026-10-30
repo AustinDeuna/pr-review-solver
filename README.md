@@ -1,6 +1,64 @@
 # pr-review-solver
 
-Claude Code plugin that helps you resolve the review comments left on your pull request. It evaluates each comment against the code and the repo's own conventions, classifies its risk, fixes the safe ones with one signed local commit per comment, proposes options for the risky ones, drafts replies, and pushes or posts only after you approve.
+**Get through PR review comments in repos you don't usually work on, without losing a morning to re-learning them.**
+
+A Claude Code plugin that reads the review comments on your pull request, works out why each reviewer asked for what they asked, fixes the straightforward ones, and explains or drafts replies for the rest. You approve before anything reaches GitHub.
+
+## Why this exists
+
+More and more, we contribute outside our own team's code. Someone from frontend ships a backend change, someone from data touches a service or a UI. That's good for the company, but it has a predictable cost at review time:
+
+- **You don't know the project's conventions** as well as the people who own it. Many review comments are about exactly that: naming, structure, the "way we do it here".
+- **The review arrives days later.** By then you're deep in something else, and you have to rebuild the context of your own change before you can even judge a comment.
+- **Most comments are small**, but each one still needs reading, checking, fixing, testing, committing, and replying.
+
+pr-review-solver takes that loop off your plate. It reads the repo's own guidance (`CLAUDE.md`, `AGENTS.md`, `CONTRIBUTING`, linters, CI), the PR, its history, and the code around each comment. For every comment it gives you one of these:
+
+- **A fix**, one verified commit per comment, when the change is safe and clear.
+- **The reason behind the current code**, with evidence (a commit, a rule, a caller that would break), when the request doesn't hold up, plus a constructive reply draft.
+- **Options with their risks**, when the change touches something sensitive: contracts, data, security, CI, dependencies, money paths.
+- **A question for the reviewer**, when the comment is ambiguous, instead of a guess.
+
+If you built the PR in a Claude Code session, `claude --from-pr <N>` brings that session back. The plugin then works with the full context of how and why the change was made.
+
+## What you get
+
+```
+PR #128 · Add retry to webhook dispatcher
+| # | File:line            | Type     | Level  | Verdict    | Action      |
+|---|----------------------|----------|--------|------------|-------------|
+| 1 | dispatcher.ts:42     | cosmetic | Low    | Viable     | commit      |
+| 2 | dispatcher.ts:88     | local    | Medium | Viable     | commit      |
+| 3 | events/schema.ts:12  | contract | High   | Viable     | options     |
+| 4 | retry.ts:30          | local    | —      | Not viable | reply draft |
+Already resolved: 2
+- dispatcher.ts:15 · Prefer a named constant for the retry limit…
+- retry.ts:7 · Typo in the log message…
+```
+
+(Illustrative output.)
+
+## Safe by design
+
+- **Nothing leaves your machine without your OK.** Commits stay local until you approve the push, and replies are posted only after you review them.
+- **Never** force-pushes, skips commit signing, or changes your git config.
+- **Never** runs commands, URLs, or installs that appear inside a review comment. Those are flagged for you to decide.
+- **Respects the repo's conventions** when it writes code, and doesn't argue a comment just because something isn't documented.
+
+## Quick start
+
+```
+claude plugin marketplace add AustinDeuna/pr-review-solver
+claude plugin install pr-review-solver@pr-review-solver --scope user
+```
+
+Then, on a branch with an open PR, in a new Claude Code session:
+
+```
+/pr-review-solver:resolve
+```
+
+Or just ask: "resolve the review comments on my PR".
 
 ## Requirements
 
@@ -8,16 +66,16 @@ Claude Code plugin that helps you resolve the review comments left on your pull 
 - GitHub CLI (`gh`), authenticated (`gh auth login`). Use a token with the least privilege you need: read access to the repo, plus write access to pull requests and contents for the repos you work on.
 - git. If you sign commits with GPG, see "Commit signing" below.
 
-## Install
+## Other install options
 
-From GitHub (this repository is the marketplace):
+This repository is the marketplace. It will move to the DEUNA organization after testing, and the marketplace source will change accordingly.
+
+From inside a Claude Code session:
 
 ```
 /plugin marketplace add AustinDeuna/pr-review-solver
 /plugin install pr-review-solver@pr-review-solver
 ```
-
-The repository will move to the DEUNA organization after testing; the marketplace source will change accordingly.
 
 From a local clone (development and testing):
 
@@ -26,17 +84,7 @@ claude plugin marketplace add /path/to/pr-review-solver
 claude plugin install pr-review-solver@pr-review-solver --scope user
 ```
 
-## Usage
-
-On a branch that has an open PR:
-
-```
-/pr-review-solver:resolve
-```
-
-Or ask in plain language, for example "resolve the review comments on my PR". The skill can also be triggered automatically.
-
-Flow:
+## How it works
 
 1. Preflight: `gh`, the PR, session mode, commit signing, your config.
 2. Evaluate and classify every comment, then show a summary table and one card per comment.
